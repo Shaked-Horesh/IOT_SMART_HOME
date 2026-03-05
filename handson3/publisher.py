@@ -2,30 +2,30 @@ import time
 import json
 import paho.mqtt.client as mqtt
 
-HOST = "139.162.222.115"
-PORT = 443
-USERNAME = "MATZI"
-PASSWORD = "MATZI"
+HOST = "test.mosquitto.org"  #ציבורי
+PORT = 1883
+USERNAME = None
+PASSWORD = None
 
-TOPIC = "hit/iot/shaked/test"
+TOPIC = "hit/iot/shakedhoresh/handson3/demo1"
 
-def on_connect(client, userdata, flags, rc):
-    print("CONNECTED, rc=", rc)
+def on_connect(client, userdata, flags, reason_code, properties=None):
+    print("CONNECTED, rc=", reason_code)
 
-def on_disconnect(client, userdata, rc):
-    print("DISCONNECTED, rc=", rc)
+def on_disconnect(client, userdata, disconnect_flags, reason_code, properties=None):
+    print("DISCONNECTED, rc=", reason_code)
 
 client_id = f"shaked_pub_{int(time.time())}"
 
-client = mqtt.Client(client_id=client_id, transport="websockets")
-client.username_pw_set(USERNAME, PASSWORD)
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
+
+if USERNAME and PASSWORD:
+    client.username_pw_set(USERNAME, PASSWORD)
+
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 
-# אופציונלי: path אם צריך
-# client.ws_set_options(path="/mqtt")
-
-print("Connecting...")
+print(f"Connecting to {HOST}:{PORT} ...")
 client.connect(HOST, PORT, keepalive=60)
 client.loop_start()
 
@@ -37,11 +37,8 @@ for i in range(1, 6):
         "ts": time.time()
     }
     data = json.dumps(payload)
-
-    result = client.publish(TOPIC, data, qos=1, retain=False)
-    status = result[0]
-    print("PUBLISHED" if status == 0 else f"FAILED ({status})", data)
-
+    info = client.publish(TOPIC, data, qos=1, retain=False)
+    print("PUBLISH rc=", info.rc, "mid=", info.mid, "payload=", data)
     time.sleep(1)
 
 client.loop_stop()
