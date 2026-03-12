@@ -3,10 +3,10 @@ import time
 import random
 
 # broker IP adress:
-broker="139.162.222.115"
+broker = "broker.hivemq.com"
+port = 1883
+topic = "pr/home/YOUR_GROUP/#"
 running_time = 90 # in sec
-topic='matzi/all'
-port=80 # for using web sockets
 
 def on_log(client, userdata, level, buf):
         print("log: "+buf)
@@ -30,7 +30,6 @@ client.on_connect=on_connect  #bind call back function
 client.on_disconnect=on_disconnect
 #client.on_log=on_log
 client.on_message=on_message
-client.username_pw_set(username="MATZI",password="MATZI")
 
 
 print("Connecting to broker ",broker)
@@ -44,11 +43,11 @@ client.connect(broker,port)     #connect to broker
 
 # Next loop will publishing all messages during running time
 client.loop_start()
-client.publish("matzi/test","test1")
 #client.subscribe("matzi/0/3PI_16145805/sts")
-client.subscribe("matzi/#")
+client.subscribe("pr/home/YOUR_GROUP/#")
 time.sleep(running_time)
 client.loop_stop()
 client.disconnect() # disconnect
 print("End of script run")
+
 
