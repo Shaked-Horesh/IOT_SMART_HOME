@@ -2,52 +2,45 @@ import paho.mqtt.client as mqtt
 import time
 import random
 
-# broker IP adress:
 broker = "broker.hivemq.com"
 port = 1883
-topic = "pr/home/YOUR_GROUP/#"
-running_time = 90 # in sec
+running_time = 120
 
-def on_log(client, userdata, level, buf):
-        print("log: "+buf)
 def on_connect(client, userdata, flags, rc):
-    if rc==0:
+    if rc == 0:
         print("connected OK")
+        client.subscribe("pr/home/shaked_ran/#")
+        print("subscribed to pr/home/shaked_ran/#")
     else:
-        print("Bad connection Returned code=",rc)
+        print("Bad connection Returned code=", rc)
+
 def on_disconnect(client, userdata, flags, rc=0):
-        print("DisConnected result code "+str(rc))
-def on_message(client,userdata,msg):
-        topic=msg.topic
-        m_decode=str(msg.payload.decode("utf-8","ignore"))
-        print("message received",m_decode)
+    print("DisConnected result code " + str(rc))
 
-r=random.randrange(1,10000) # for creating unique client ID
-clientname="IOT_test-"+str(r)
-client = mqtt.Client(clientname, clean_session=True) # create new client instance
+def on_message(client, userdata, msg):
+    m_decode = msg.payload.decode("utf-8", "ignore")
+    print("topic:", msg.topic)
+    print("message received:", m_decode)
+    print("-------------------")
 
-client.on_connect=on_connect  #bind call back function
-client.on_disconnect=on_disconnect
-#client.on_log=on_log
-client.on_message=on_message
+r = random.randrange(1, 10000)
+clientname = "IOT_test-" + str(r)
 
+client = mqtt.Client(
+    mqtt.CallbackAPIVersion.VERSION1,
+    client_id=clientname,
+    clean_session=True
+)
 
-print("Connecting to broker ",broker)
-client.connect(broker,port)     #connect to broker
+client.on_connect = on_connect
+client.on_disconnect = on_disconnect
+client.on_message = on_message
 
-# Following is an example for code turning a Relay device 'On':
-#device_ID = "3PI_16167641"
-#client.publish("matzi/0/"+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":1}')
-# and consequently 'OFF':
-#client.publish("matzi/0/"+device_ID, ' {"type":"set_state", "action":"set_value", "addr":0, "cname":"ONOFF", "value":0}')
+print("Connecting to broker", broker)
+client.connect(broker, port)
 
-# Next loop will publishing all messages during running time
 client.loop_start()
-#client.subscribe("matzi/0/3PI_16145805/sts")
-client.subscribe("pr/home/YOUR_GROUP/#")
 time.sleep(running_time)
 client.loop_stop()
-client.disconnect() # disconnect
+client.disconnect()
 print("End of script run")
-
-
